@@ -9,6 +9,10 @@ function save() {
   localStorage.setItem("financeData", JSON.stringify(data));
 }
 
+function formatINR(num) {
+  return Number(num).toLocaleString("en-IN");
+}
+
 function render() {
   document.getElementById("totalBalance").value = data.totalBalance;
 
@@ -19,8 +23,8 @@ function render() {
     const div = document.createElement("div");
 
     div.innerHTML = `
-      <input value="${cat.name}" onchange="updateName(${index}, this.value)" />
-      <input type="number" value="${cat.amount}" onchange="updateAmount(${index}, this.value)" />
+      <input value="${cat.name}" oninput="updateName(${index}, this.value)" />
+      <input type="number" value="${cat.amount}" oninput="updateAmount(${index}, this.value)" />
       <button onclick="deleteCategory(${index})">X</button>
     `;
 
@@ -32,12 +36,15 @@ function render() {
 
 function calculate() {
   const total = Number(data.totalBalance);
-  const allocated = data.allocations.reduce((sum, c) => sum + Number(c.amount || 0), 0);
+  const allocated = data.allocations.reduce(
+    (sum, c) => sum + Number(c.amount || 0),
+    0
+  );
 
   const remaining = total - allocated;
 
   document.getElementById("remaining").innerText =
-    "Remaining: " + remaining;
+    "Remaining: ₹ " + formatINR(remaining);
 
   if (allocated > total) {
     document.getElementById("warning").innerText =
@@ -48,7 +55,8 @@ function calculate() {
 }
 
 function updateTotal(value) {
-  data.totalBalance = Number(value);
+  const clean = value.toString().replace(/,/g, "");
+  data.totalBalance = Number(clean);
   save();
   calculate();
 }
@@ -59,7 +67,25 @@ function updateName(index, value) {
 }
 
 function updateAmount(index, value) {
-  data.allocations[index].amount = Number(value);
+  const clean = value.toString().replace(/,/g, "");
+  const newAmount = Number(clean);
+
+  // simulate updated allocations
+  const tempAllocations = [...data.allocations];
+  tempAllocations[index].amount = newAmount;
+
+  const totalAllocated = tempAllocations.reduce(
+    (sum, c) => sum + Number(c.amount || 0),
+    0
+  );
+
+  if (totalAllocated > data.totalBalance) {
+    document.getElementById("warning").innerText =
+      "Allocations exceed total balance!";
+    return; // 🚫 block invalid update
+  }
+
+  data.allocations[index].amount = newAmount;
   save();
   calculate();
 }
@@ -84,7 +110,36 @@ function resetAll() {
   render();
 }
 
-document.getElementById("totalBalance")
+function manualSave() {
+  save();
+  alert("Data saved!");
+}
+
+// Event listener
+document
+  .getElementById("totalBalance")
   .addEventListener("input", (e) => updateTotal(e.target.value));
 
 render();
+
+
+// ✅ PWA INSTALL LOGIC
+let deferredPrompt;
+
+window.addEventListener("beforeinstallprompt", (e) => {
+  e.preventDefault();
+  deferredPrompt = e;
+
+  document.getElementById("installBtn").style.display = "block";
+});
+
+document.getElementById("installBtn").addEventListener("click", async () => {
+  if (!deferredPrompt) return;
+
+  deferredPrompt.prompt();
+
+  const { outcome } = await deferredPrompt.userChoice;
+  console.log("User choice:", outcome);
+
+  deferredPrompt = null;
+});
