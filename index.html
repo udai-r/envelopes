@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Finance Allocator</title>
+  <link rel="manifest" href="manifest.json">
+</head>
+<body>
+
+<h2>Finance Allocator</h2>
+
+<label>Total Balance:</label>
+<input type="number" id="totalBalance" />
+
+<h3>Allocations</h3>
+<div id="categories"></div>
+
+<button onclick="addCategory()">Add Category</button>
+
+<h3 id="remaining"></h3>
+<p id="warning" style="color:red;"></p>
+
+<button onclick="resetAll()">Reset</button>
+
+<script src="app.js"></script>
+</body>
+</html>
