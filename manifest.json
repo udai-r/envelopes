@@ -1,6 +1,6 @@
 {
   "name": "Envelopes",
-  "short_name": "Allocator",
+  "short_name": "Envelopes",
   "start_url": ".",
   "display": "standalone",
   "background_color": "#ffffff",
